@@ -51,7 +51,23 @@ excats=5-15-48-28-1-22-30-13-2-3-5-7-2-9&sort=rel&hasPic=1&searchNearby=1")
 	    (second result)
 	    (third result))))
 
-(define current-results (find-results base-url))
+(define (load-prev-results)
+  (with-handlers ([exn? (λ (e) empty)])
+    (call-with-input-file "seen.dat" read)))
 
-(printf "Crawling for results...\n\n")
-(pretty-print current-results)
+(define (save-results results)
+  (write results (open-output-file "seen.dat" #:exists 'truncate)))
+
+
+
+(printf "Crawling for new results...\n\n")
+
+(define current-results (find-results base-url))
+(define prev-results (load-prev-results))
+(define new-results (remove* prev-results
+			     current-results))
+(printf "Found these new results:\n\n")
+(pretty-print new-results)
+(printf "\nSaving new results...\n")
+(save-results (append prev-results new-results))
+(printf "Done.\n")
